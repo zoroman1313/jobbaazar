@@ -1,0 +1,17 @@
+{
+  "name": "jobbaazar",
+  "version": "1.0.0",
+  "description": "Jobbaazar - Job Marketplace Platform",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev"
+  },
+  "keywords": [
+    "jobbaazar",
+    "job-marketplace",
+    "multilingual"
+  ],
+  "author": "Jobbaazar Team",
+  "license": "MIT"
+}
