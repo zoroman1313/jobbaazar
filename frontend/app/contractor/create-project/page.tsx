@@ -19,8 +19,11 @@ import {
   FaMap,
   FaLocationArrow,
   FaInfoCircle,
-  FaCheck
+  FaCheck,
+  FaBrain,
+  FaEye
 } from "react-icons/fa";
+import AIAnalysis from "./ai-analysis";
 
 // Persian translations
 const translations = {
@@ -135,6 +138,10 @@ export default function ContractorCreateProjectPage() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mapKey, setMapKey] = useState(0); // For map re-rendering
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
+  const [aiAnalysisFile, setAiAnalysisFile] = useState<File | null>(null);
+  const [aiDetectedRooms, setAiDetectedRooms] = useState<any[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const postcodeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fix hydration issue by ensuring component is mounted
@@ -589,10 +596,50 @@ export default function ContractorCreateProjectPage() {
       const newFiles = Array.from(files).filter(file => 
         file.type === "image/jpeg" || 
         file.type === "image/jpg" || 
+        file.type === "image/png" ||
         file.type === "application/pdf"
       );
       setUploadedFiles(prev => [...prev, ...newFiles].slice(0, 5));
     }
+  };
+
+  const handleAIAnalysis = (file: File) => {
+    setAiAnalysisFile(file);
+    setShowAIAnalysis(true);
+    setIsAnalyzing(true);
+  };
+
+  const handleAIAnalysisComplete = (detectedRooms: any[]) => {
+    setAiDetectedRooms(detectedRooms);
+    setShowAIAnalysis(false);
+    setIsAnalyzing(false);
+    
+    // Auto-fill the room selection with detected rooms
+    const newRooms: Room[] = detectedRooms.map((room, index) => ({
+      id: `ai-detected-${index}`,
+      name: room.room,
+      count: 1,
+      instances: [{
+        id: `ai-detected-${index}-${Date.now()}`,
+        area: room.area.replace(' m²', '')
+      }],
+      isCustom: true
+    }));
+    
+    setSelectedRooms(prev => [...prev, ...newRooms]);
+    
+    // Add the analyzed file to uploaded files if not already there
+    if (aiAnalysisFile && !uploadedFiles.find(f => f.name === aiAnalysisFile.name)) {
+      setUploadedFiles(prev => [...prev, aiAnalysisFile]);
+    }
+    
+    alert(`تعداد ${detectedRooms.length} اتاق با موفقیت تشخیص داده شد و به لیست اضافه شد!`);
+  };
+
+  const handleAIAnalysisCancel = () => {
+    setShowAIAnalysis(false);
+    setIsAnalyzing(false);
+    setAiAnalysisFile(null);
   };
 
   const handleRemoveFile = (index: number) => {
@@ -1020,39 +1067,127 @@ export default function ContractorCreateProjectPage() {
                 </div>
               </div>
 
-              {/* File Upload */}
+              {/* AI Floor Plan Analysis */}
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  {translations.mapUpload}
+                  تحلیل هوشمند نقشه کف
                 </h2>
                 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <FaUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">
-                    {translations.dragDrop}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-start space-x-4 space-x-reverse">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <FaBrain className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        تحلیل خودکار نقشه با هوش مصنوعی
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        نقشه کف خود را آپلود کنید تا به صورت خودکار اتاق‌ها، مساحت‌ها و ابعاد تشخیص داده شوند.
+                        از OCR، تشخیص اشیاء و GPT-4 Vision استفاده می‌شود.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <FaEye className="w-4 h-4 text-blue-600" />
+                          <span>تشخیص متن و اعداد</span>
+                        </div>
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <FaBrain className="w-4 h-4 text-purple-600" />
+                          <span>تشخیص شکل اتاق‌ها</span>
+                        </div>
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <FaCheck className="w-4 h-4 text-green-600" />
+                          <span>تحلیل هوشمند</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Analysis Upload */}
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
+                  <FaBrain className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                  <p className="text-gray-700 mb-2 font-medium">
+                    نقشه کف را برای تحلیل هوشمند آپلود کنید
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    فرمت‌های پشتیبانی شده: PNG، JPG، PDF، DXF
                   </p>
                   <p className="text-sm text-gray-500 mb-4">
-                    {translations.supportedFormats}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    {translations.maxFileSize}
+                    حداکثر اندازه فایل: 10 مگابایت
                   </p>
                   
                   <input
                     type="file"
-                    multiple
-                    accept=".jpg,.jpeg,.pdf"
-                    onChange={handleFileUpload}
+                    accept=".png,.jpg,.jpeg,.pdf,.dxf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleAIAnalysis(file);
+                      }
+                    }}
                     className="hidden"
-                    id="file-upload"
+                    id="ai-file-upload"
+                    disabled={isAnalyzing}
                   />
                   <label
-                    htmlFor="file-upload"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+                    htmlFor="ai-file-upload"
+                    className={`inline-flex items-center space-x-2 space-x-reverse px-6 py-3 rounded-lg cursor-pointer transition-colors ${
+                      isAnalyzing 
+                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                   >
-                    <FaUpload className="w-4 h-4 ml-2" />
-                    {translations.uploadFile}
+                    {isAnalyzing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>در حال تحلیل...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaBrain className="w-4 h-4" />
+                        <span>تحلیل هوشمند نقشه</span>
+                      </>
+                    )}
                   </label>
+                </div>
+
+                {/* Regular File Upload */}
+                <div className="mt-6">
+                  <h3 className="text-md font-semibold text-gray-900 mb-4">
+                    آپلود معمولی فایل‌ها
+                  </h3>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <FaUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">
+                      {translations.dragDrop}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      فرمت‌های پشتیبانی شده: PNG، JPG، PDF
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      {translations.maxFileSize}
+                    </p>
+                    
+                    <input
+                      type="file"
+                      multiple
+                      accept=".png,.jpg,.jpeg,.pdf"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 cursor-pointer transition-colors"
+                    >
+                      <FaUpload className="w-4 h-4 ml-2" />
+                      {translations.uploadFile}
+                    </label>
+                  </div>
                 </div>
 
                 {/* Uploaded Files */}
@@ -1154,6 +1289,15 @@ export default function ContractorCreateProjectPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Analysis Modal */}
+      {showAIAnalysis && aiAnalysisFile && (
+        <AIAnalysis
+          file={aiAnalysisFile}
+          onAnalysisComplete={handleAIAnalysisComplete}
+          onCancel={handleAIAnalysisCancel}
+        />
       )}
     </div>
   );
