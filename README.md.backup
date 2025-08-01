@@ -1,0 +1,108 @@
+# Contractor Assistant
+
+A Next.js 14 application with TypeScript and Tailwind CSS featuring an intro animation and language selection interface.
+
+## Features
+
+- **Single Page Design**: Animation section at top, language selection below
+- **Smooth Scrolling**: Smooth transitions between sections
+- **Intro Animation**: Fullscreen animation with skip functionality (5-second auto-skip)
+- **Language Selection**: Four language options with flag icons
+- **Icon-Only Mode**: Returning users see larger icons without labels
+- **Mobile-First Design**: Responsive design optimized for mobile devices
+- **localStorage Integration**: Remembers user's language preference and visit status
+- **Navigation Ready**: Routes to `/role-selection` after language selection
+
+## Languages Supported
+
+- 🇺🇸 English
+- 🇮🇷 فارسی (Persian)
+- 🇸🇦 العربية (Arabic)
+- 🇹🇷 Türkçe (Turkish)
+
+## Page Behavior
+
+### First Visit
+1. Shows fullscreen animation section
+2. "Skip" button at bottom center
+3. Auto-scrolls to language selection after 5 seconds
+4. Language selection shows icons + labels
+
+### Returning Users
+1. If language already selected: skips animation, shows language selection immediately
+2. If skipped before: shows language selection immediately
+3. Language selection shows icon-only mode (larger icons, no labels)
+
+### Language Selection
+- Saves `localStorage.language` and `localStorage.firstVisit = false`
+- Navigates to `/role-selection` page
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+├── app/
+│   ├── Intro.tsx                    # Main intro component
+│   ├── role-selection/
+│   │   └── page.tsx                 # Role selection page (placeholder)
+│   ├── globals.css                  # Global styles with Tailwind
+│   ├── layout.tsx                   # Root layout
+│   └── page.tsx                     # Main page
+├── package.json
+├── tailwind.config.js
+├── tsconfig.json
+└── README.md
+```
+
+## localStorage Keys
+
+- `language`: Selected language code (en, fa, ar, tr)
+- `firstVisit`: Whether this is the user's first visit (true/false)
+- `skipIntro`: Whether user has skipped the intro (true/false)
+
+## Customization
+
+### Replacing the Animation
+The current animation uses a placeholder emoji. You can replace it with:
+- A Lottie JSON animation
+- An animated GIF
+- Custom CSS animations
+
+### Adding More Languages
+To add more languages, modify the `languages` array in `Intro.tsx`:
+
+```typescript
+const languages: Language[] = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  // Add more languages here
+]
+```
+
+### Styling
+All styling is done with Tailwind CSS classes. The design features:
+- Single page with two full-height sections
+- Smooth scrolling between sections
+- Responsive 2x2 grid for language selection
+- Hover effects and transitions
+- Backdrop blur effects for modern UI
+
+## Next Steps
+
+The component is ready for:
+- Role selection page implementation
+- Additional navigation flows
+- Animation replacement with Lottie/GIF
+- More language options 
